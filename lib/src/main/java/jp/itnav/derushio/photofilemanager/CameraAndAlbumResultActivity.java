@@ -120,7 +120,6 @@ abstract public class CameraAndAlbumResultActivity extends Activity {
 					startCamera();
 				}
 			});
-
 			buttonAlbum.setOnClickListener(new View.OnClickListener() {
 				@Override
 				public void onClick(View v) {
