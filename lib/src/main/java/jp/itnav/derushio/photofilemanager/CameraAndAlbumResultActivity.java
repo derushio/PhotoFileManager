@@ -4,9 +4,8 @@ import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.view.LayoutInflater;
@@ -15,7 +14,6 @@ import android.widget.LinearLayout;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.List;
 
 /**
  * Created by derushio on 15/02/12.
@@ -47,10 +45,20 @@ abstract public class CameraAndAlbumResultActivity extends Activity {
 					} catch (IOException e) {
 						e.printStackTrace();
 					}
+					startCrop();
+					break;
 				case REQUEST_CAMERA:
 					startCrop();
 					break;
 				case REQUEST_CROP:
+					Bitmap bitmap = BitmapFactory.decodeFile(photoFileManager.getCacheFile(CACHE_CROP).getPath());
+					Bitmap resizeBitmap = Bitmap.createScaledBitmap(bitmap, cropSizeX, cropSizeY, false);
+					try {
+						photoFileManager.outputImage(resizeBitmap, photoFileManager.getCacheDir(), CACHE_CROP, false);
+					} catch (FileNotFoundException e) {
+						e.printStackTrace();
+					}
+
 					onCropFinished();
 					break;
 			}
@@ -60,7 +68,7 @@ abstract public class CameraAndAlbumResultActivity extends Activity {
 	protected void startCamera() {
 		Intent intent = new Intent();
 		intent.setAction(MediaStore.ACTION_IMAGE_CAPTURE);
-		intent.putExtra(MediaStore.EXTRA_OUTPUT, photoFileManager.getCacheFile(CACHE_PHOTO));
+		intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(photoFileManager.getCacheFile(CACHE_PHOTO)));
 		startActivityForResult(intent, REQUEST_CAMERA);
 	}
 
@@ -72,43 +80,17 @@ abstract public class CameraAndAlbumResultActivity extends Activity {
 	}
 
 	protected void startCrop() {
+		Intent intent = new Intent("com.android.camera.action.CROP");
+		intent.setDataAndType(Uri.fromFile(photoFileManager.getCacheFile(CACHE_PHOTO)), "image/*");
+		intent.putExtra("outputX", cropSizeX);
+		intent.putExtra("outputY", cropSizeY);
+		intent.putExtra("aspectX", cropSizeX);
+		intent.putExtra("aspectY", cropSizeY);
+		intent.putExtra("scale", true);
+		intent.putExtra("return-data", false);
+		intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(photoFileManager.getCacheFile(CACHE_CROP)));
 
-		PackageManager packageManager = this.getPackageManager();
-		List<ApplicationInfo> applications = packageManager.getInstalledApplications(0);
-		String[] apps = {"com.android.gallery", "com.cooliris.media", "com.google.android.gallery3d"};
-		String[] appClasses = {"com.android.camera.CropImage", "com.cooliris.media.CropImage", "com.android.gallery3d.app.CropImage"};
-
-		int classType = -1;
-		for (ApplicationInfo ai : applications) {
-			String s1 = ai.packageName;
-			if (apps[0].equals(s1)) {
-				classType = 0;
-			}
-			if (apps[1].equals(s1)) {
-				classType = 1;
-			}
-			if (apps[2].equals(s1)) {
-				classType = 2;
-			}
-		}
-
-		Intent intent = new Intent();
-		if (classType != -1) {
-
-			intent.setClassName(apps[classType], appClasses[classType]);
-			intent.setData(Uri.fromFile(photoFileManager.getCacheFile(CACHE_PHOTO)));
-
-			intent.putExtra("outputX", cropSizeX);
-			intent.putExtra("outputY", cropSizeY);
-			intent.putExtra("aspectX", cropSizeX / (cropSizeX + cropSizeY));
-			intent.putExtra("aspectY", cropSizeY / (cropSizeX + cropSizeY));
-			intent.putExtra("scale", true);
-			intent.putExtra("noFaceDetection", true);
-			intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(photoFileManager.getCacheFile(CACHE_CROP)));
-			intent.putExtra("outputFormat", Bitmap.CompressFormat.JPEG.name());
-
-			startActivityForResult(intent, REQUEST_CROP);
-		}
+		startActivityForResult(intent, REQUEST_CROP);
 	}
 
 	abstract protected void onCropFinished();

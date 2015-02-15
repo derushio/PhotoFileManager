@@ -1,9 +1,12 @@
 package jp.itnav.derushio.photofilemanager;
 
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.media.MediaScannerConnection;
+import android.net.Uri;
 import android.os.Environment;
+import android.support.v4.app.ShareCompat;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -32,17 +35,25 @@ public class PhotoFileManager {
 	}
 //	キャッシュするためのファイルのUri
 
-	public File getOutputImageDir() {
-		File outputImageDir = new File(Environment.getExternalStorageDirectory().getPath() + "/Pictures/" + context.getApplicationInfo().name);
+	public File getOutputImageDir(String dirName) {
+		File outputImageDir = new File(Environment.getExternalStorageDirectory().getPath() + "/Pictures");
+		if (dirName != null || !dirName.equals("")) {
+			outputImageDir = new File(outputImageDir.getPath(), dirName);
+		}
+
 		if (outputImageDir.exists() == false) {
 			outputImageDir.mkdirs();
 		}
 
 		return outputImageDir;
 	}
+
+	public File getOutputImageDir() {
+		return getOutputImageDir(null);
+	}
 //	イメージ出力用のパスを取得
 
-	public String outputImage(Bitmap bitmap, File dir, String name, boolean scan) throws FileNotFoundException {
+	public File outputImage(Bitmap bitmap, File dir, String name, boolean scan) throws FileNotFoundException {
 		if (dir == null) {
 			dir = getOutputImageDir();
 		}
@@ -61,7 +72,23 @@ public class PhotoFileManager {
 			MediaScannerConnection.scanFile(context, new String[]{outputFile.getPath()}, new String[]{"image/jpg"}, null);
 		}
 
-		return (outputFile.getPath());
+		return outputFile;
 	}
-//	イメージを出力し、ライブラリDBに登録
+
+	//	イメージを出力し、ライブラリDBに登録
+	public boolean shareImage(Bitmap bitmap, File dir, Activity activity, String message, String subject) {
+		try {
+			File outputFile = outputImage(bitmap, dir, null, true);
+			ShareCompat.IntentBuilder builder = ShareCompat.IntentBuilder.from(activity);
+			builder.setType("image/*");
+			builder.setStream(Uri.fromFile(outputFile));
+			builder.setText(message);
+			builder.setSubject(subject);
+			builder.startChooser();
+			return true;
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
 }
