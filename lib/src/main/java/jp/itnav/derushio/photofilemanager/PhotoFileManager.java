@@ -28,12 +28,12 @@ public class PhotoFileManager {
 	public File getCacheDir() {
 		return context.getExternalFilesDir("cache");
 	}
-//	キャッシュするためのPathを取得
+	// キャッシュするためのPathを取得
 
 	public File getCacheFile(String fileName) {
 		return new File(getCacheDir().getPath(), fileName + ".jpg");
 	}
-//	キャッシュするためのファイルのUri
+	// キャッシュするためのファイルのUri
 
 	public File getOutputImageDir(String dirName) {
 		File outputImageDir = new File(Environment.getExternalStorageDirectory().getPath() + "/Pictures");
@@ -51,7 +51,7 @@ public class PhotoFileManager {
 	public File getOutputImageDir() {
 		return getOutputImageDir(null);
 	}
-//	イメージ出力用のパスを取得
+	// イメージ出力用のパスを取得
 
 	public File outputImage(Bitmap bitmap, File dir, String name, boolean scan) throws FileNotFoundException {
 		if (dir == null) {
@@ -74,8 +74,8 @@ public class PhotoFileManager {
 
 		return outputFile;
 	}
+	// イメージを出力し、ライブラリDBに登録
 
-	//	イメージを出力し、ライブラリDBに登録
 	public boolean shareImage(Bitmap bitmap, File dir, Activity activity, String message, String subject) {
 		try {
 			File outputFile = outputImage(bitmap, dir, null, true);
@@ -91,4 +91,5 @@ public class PhotoFileManager {
 		}
 		return false;
 	}
+	// シェア
 }

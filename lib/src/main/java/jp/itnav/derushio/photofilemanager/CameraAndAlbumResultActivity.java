@@ -64,6 +64,7 @@ abstract public class CameraAndAlbumResultActivity extends Activity {
 			}
 		}
 	}
+	// カメラ画面等から戻ってきた時の動作
 
 	protected void startCamera() {
 		Intent intent = new Intent();
@@ -71,6 +72,7 @@ abstract public class CameraAndAlbumResultActivity extends Activity {
 		intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(photoFileManager.getCacheFile(CACHE_PHOTO)));
 		startActivityForResult(intent, REQUEST_CAMERA);
 	}
+	// カメラを起動
 
 	protected void startAlbum() {
 		Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
@@ -78,6 +80,7 @@ abstract public class CameraAndAlbumResultActivity extends Activity {
 		intent.addCategory(Intent.CATEGORY_OPENABLE);
 		startActivityForResult(intent, REQUEST_GALLERY);
 	}
+	// アルバムを起動
 
 	protected void startCrop() {
 		Intent intent = new Intent("com.android.camera.action.CROP");
@@ -92,18 +95,19 @@ abstract public class CameraAndAlbumResultActivity extends Activity {
 
 		startActivityForResult(intent, REQUEST_CROP);
 	}
+	// 切り抜きを開始
 
 	abstract protected void onCropFinished();
+	// 切り抜きが終わった時の処理を設定
 
 	protected class pictureActionDialog extends Dialog {
-
 		private Context context;
 
 		public pictureActionDialog(Context context) {
 			super(context);
 			this.context = context;
 
-			setTitle("画像取得方法を選んでください");
+			setTitle("写真を選ぶ");
 			LinearLayout layoutDialog = new LinearLayout(context);
 			LayoutInflater.from(context).inflate(R.layout.dialog_photo_action, layoutDialog);
 
@@ -125,12 +129,15 @@ abstract public class CameraAndAlbumResultActivity extends Activity {
 			});
 		}
 	}
+	// 写真を撮る、選択する操作を開始
 
 	public void setCropSizeX(int cropSizeX) {
 		this.cropSizeX = cropSizeX;
 	}
+	// 切り抜き幅を設定
 
 	public void setCropSizeY(int cropSizeY) {
 		this.cropSizeY = cropSizeY;
 	}
+	// 切り抜き高さを設定
 }
