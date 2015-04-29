@@ -19,14 +19,14 @@ import java.io.FileOutputStream;
 
 public class PhotoFileManager {
 
-	private Context context;
+	private Context mContext;
 
 	public PhotoFileManager(Context context) {
-		this.context = context;
+		mContext = context;
 	}
 
 	public File getCacheDir() {
-		return context.getExternalFilesDir("cache");
+		return mContext.getExternalFilesDir("cache");
 	}
 	// キャッシュするためのPathを取得
 
@@ -69,7 +69,7 @@ public class PhotoFileManager {
 		bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fileOutputStream);
 
 		if (scan) {
-			MediaScannerConnection.scanFile(context, new String[]{outputFile.getPath()}, new String[]{"image/jpg"}, null);
+			MediaScannerConnection.scanFile(mContext, new String[]{outputFile.getPath()}, new String[]{"image/jpg"}, null);
 		}
 
 		return outputFile;

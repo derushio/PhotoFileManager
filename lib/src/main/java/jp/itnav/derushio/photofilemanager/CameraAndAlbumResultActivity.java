@@ -22,14 +22,14 @@ abstract public class CameraAndAlbumResultActivity extends Activity {
 	public static final String CACHE_PHOTO = "cache_image";
 	public static final String CACHE_CROP = "cache_crop";
 
-	private int cropSizeX = 1000;
-	private int cropSizeY = 1000;
+	private int mCropSizeX = 1000;
+	private int mCropSizeY = 1000;
 
 	private static final int REQUEST_CAMERA = 0;
 	private static final int REQUEST_GALLERY = 1;
 	private static final int REQUEST_CROP = 2;
 
-	private PhotoFileManager photoFileManager = new PhotoFileManager(this);
+	private PhotoFileManager mPhotoFIleManager = new PhotoFileManager(this);
 
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -39,7 +39,7 @@ abstract public class CameraAndAlbumResultActivity extends Activity {
 			switch (requestCode) {
 				case REQUEST_GALLERY:
 					try {
-						photoFileManager.outputImage(MediaStore.Images.Media.getBitmap(getContentResolver(), data.getData()), photoFileManager.getCacheDir(), CACHE_PHOTO, false);
+						mPhotoFIleManager.outputImage(MediaStore.Images.Media.getBitmap(getContentResolver(), data.getData()), mPhotoFIleManager.getCacheDir(), CACHE_PHOTO, false);
 					} catch (FileNotFoundException e) {
 						e.printStackTrace();
 					} catch (IOException e) {
@@ -51,10 +51,10 @@ abstract public class CameraAndAlbumResultActivity extends Activity {
 					startCrop();
 					break;
 				case REQUEST_CROP:
-					Bitmap bitmap = BitmapFactory.decodeFile(photoFileManager.getCacheFile(CACHE_CROP).getPath());
-					Bitmap resizeBitmap = Bitmap.createScaledBitmap(bitmap, cropSizeX, cropSizeY, false);
+					Bitmap bitmap = BitmapFactory.decodeFile(mPhotoFIleManager.getCacheFile(CACHE_CROP).getPath());
+					Bitmap resizeBitmap = Bitmap.createScaledBitmap(bitmap, mCropSizeX, mCropSizeY, false);
 					try {
-						photoFileManager.outputImage(resizeBitmap, photoFileManager.getCacheDir(), CACHE_CROP, false);
+						mPhotoFIleManager.outputImage(resizeBitmap, mPhotoFIleManager.getCacheDir(), CACHE_CROP, false);
 					} catch (FileNotFoundException e) {
 						e.printStackTrace();
 					}
@@ -69,7 +69,7 @@ abstract public class CameraAndAlbumResultActivity extends Activity {
 	protected void startCamera() {
 		Intent intent = new Intent();
 		intent.setAction(MediaStore.ACTION_IMAGE_CAPTURE);
-		intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(photoFileManager.getCacheFile(CACHE_PHOTO)));
+		intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(mPhotoFIleManager.getCacheFile(CACHE_PHOTO)));
 		startActivityForResult(intent, REQUEST_CAMERA);
 	}
 	// カメラを起動
@@ -84,14 +84,14 @@ abstract public class CameraAndAlbumResultActivity extends Activity {
 
 	protected void startCrop() {
 		Intent intent = new Intent("com.android.camera.action.CROP");
-		intent.setDataAndType(Uri.fromFile(photoFileManager.getCacheFile(CACHE_PHOTO)), "image/*");
-		intent.putExtra("outputX", cropSizeX);
-		intent.putExtra("outputY", cropSizeY);
-		intent.putExtra("aspectX", cropSizeX);
-		intent.putExtra("aspectY", cropSizeY);
+		intent.setDataAndType(Uri.fromFile(mPhotoFIleManager.getCacheFile(CACHE_PHOTO)), "image/*");
+		intent.putExtra("outputX", mCropSizeX);
+		intent.putExtra("outputY", mCropSizeY);
+		intent.putExtra("aspectX", mCropSizeX);
+		intent.putExtra("aspectY", mCropSizeY);
 		intent.putExtra("scale", true);
 		intent.putExtra("return-data", false);
-		intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(photoFileManager.getCacheFile(CACHE_CROP)));
+		intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(mPhotoFIleManager.getCacheFile(CACHE_CROP)));
 
 		startActivityForResult(intent, REQUEST_CROP);
 	}
@@ -131,12 +131,12 @@ abstract public class CameraAndAlbumResultActivity extends Activity {
 	// 写真を撮る、選択する操作を開始
 
 	public void setCropSizeX(int cropSizeX) {
-		this.cropSizeX = cropSizeX;
+		this.mCropSizeX = cropSizeX;
 	}
 	// 切り抜き幅を設定
 
 	public void setCropSizeY(int cropSizeY) {
-		this.cropSizeY = cropSizeY;
+		this.mCropSizeY = cropSizeY;
 	}
 	// 切り抜き高さを設定
 }
