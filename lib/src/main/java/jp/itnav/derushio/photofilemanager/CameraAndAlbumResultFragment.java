@@ -1,6 +1,5 @@
 package jp.itnav.derushio.photofilemanager;
 
-import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
@@ -9,8 +8,10 @@ import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.LinearLayout;
 
 import java.io.File;
@@ -18,9 +19,9 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 
 /**
- * Created by derushio on 15/02/12.
+ * Created by derushio on 15/05/05.
  */
-abstract public class CameraAndAlbumResultActivity extends Activity {
+public abstract class CameraAndAlbumResultFragment extends Fragment {
 	public static final String CACHE_PHOTO = "cache_image";
 	public static final String CACHE_CROP = "cache_crop";
 
@@ -34,20 +35,20 @@ abstract public class CameraAndAlbumResultActivity extends Activity {
 	protected PhotoFileManager mPhotoFileManager;
 
 	@Override
-	protected void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		mPhotoFileManager = new PhotoFileManager(this);
+	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+		mPhotoFileManager = new PhotoFileManager(getActivity());
+		return super.onCreateView(inflater, container, savedInstanceState);
 	}
 
 	@Override
-	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+	public void onActivityResult(int requestCode, int resultCode, Intent data) {
 		super.onActivityResult(requestCode, resultCode, data);
 
-		if (resultCode == RESULT_OK) {
+		if (resultCode == getActivity().RESULT_OK) {
 			switch (requestCode) {
 				case REQUEST_GALLERY:
 					try {
-						mPhotoFileManager.outputImage(MediaStore.Images.Media.getBitmap(getContentResolver(), data.getData()), mPhotoFileManager.getCacheDir(), CACHE_PHOTO, false);
+						mPhotoFileManager.outputImage(MediaStore.Images.Media.getBitmap(getActivity().getContentResolver(), data.getData()), mPhotoFileManager.getCacheDir(), CACHE_PHOTO, false);
 					} catch (FileNotFoundException e) {
 						e.printStackTrace();
 					} catch (IOException e) {
