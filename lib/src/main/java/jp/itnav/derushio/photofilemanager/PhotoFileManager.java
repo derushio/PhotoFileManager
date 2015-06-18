@@ -118,22 +118,22 @@ public class PhotoFileManager {
 		AlertDialog.Builder dialog = new AlertDialog.Builder(mActivity);
 
 		dialog.setTitle("写真を選ぶ");
-		dialog.setNegativeButton("キャンセル", new DialogInterface.OnClickListener() {
+		dialog.setPositiveButton("アルバム", new DialogInterface.OnClickListener() {
 			@Override
 			public void onClick(DialogInterface dialog, int which) {
-				dialog.dismiss();
+				startAlbum();
 			}
 		});
-		dialog.setNeutralButton("カメラ", new DialogInterface.OnClickListener() {
+		dialog.setNegativeButton("カメラ", new DialogInterface.OnClickListener() {
 			@Override
 			public void onClick(DialogInterface dialog, int which) {
 				startCamera();
 			}
 		});
-		dialog.setPositiveButton("アルバム", new DialogInterface.OnClickListener() {
+		dialog.setNeutralButton("キャンセル", new DialogInterface.OnClickListener() {
 			@Override
 			public void onClick(DialogInterface dialog, int which) {
-				startAlbum();
+				dialog.dismiss();
 			}
 		});
 
