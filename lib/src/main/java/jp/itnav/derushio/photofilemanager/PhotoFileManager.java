@@ -1,16 +1,21 @@
 package jp.itnav.derushio.photofilemanager;
 
 import android.app.Activity;
-import android.content.Context;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Environment;
+import android.provider.MediaStore;
 import android.support.v4.app.ShareCompat;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 
 /**
  * Created by nakashionarumi on 2014/06/26.
@@ -19,14 +24,14 @@ import java.io.FileOutputStream;
 
 public class PhotoFileManager {
 
-	private Context mContext;
+	private Activity mActivity;
 
-	public PhotoFileManager(Context context) {
-		mContext = context;
+	public PhotoFileManager(Activity activity) {
+		mActivity = activity;
 	}
 
 	public File getCacheDir() {
-		return mContext.getExternalFilesDir("cache");
+		return mActivity.getExternalFilesDir("cache");
 	}
 	// キャッシュするためのPathを取得
 
@@ -69,7 +74,7 @@ public class PhotoFileManager {
 		bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fileOutputStream);
 
 		if (scan) {
-			MediaScannerConnection.scanFile(mContext, new String[]{outputFile.getPath()}, new String[]{"image/jpg"}, null);
+			MediaScannerConnection.scanFile(mActivity, new String[]{outputFile.getPath()}, new String[]{"image/jpg"}, null);
 		}
 
 		return outputFile;
@@ -92,4 +97,128 @@ public class PhotoFileManager {
 		return false;
 	}
 	// シェア
+
+	public static final String CACHE_PHOTO = "cache_image";
+	public static final String CACHE_CROP = "cache_crop";
+
+	private int mCropSizeX = 1000;
+	private int mCropSizeY = 1000;
+
+	private static final int REQUEST_CAMERA = 0;
+	private static final int REQUEST_GALLERY = 1;
+	private static final int REQUEST_CROP = 2;
+
+	private OnCropFinished mOnCropFinished = new OnCropFinished() {
+		@Override
+		public void onCropFinished(File file) {
+		}
+	};
+
+	public void showPictureActionDialog() {
+		AlertDialog.Builder dialog = new AlertDialog.Builder(mActivity);
+
+		dialog.setTitle("写真を選ぶ");
+		dialog.setNegativeButton("キャンセル", new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				dialog.dismiss();
+			}
+		});
+		dialog.setNeutralButton("カメラ", new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				startCamera();
+			}
+		});
+		dialog.setPositiveButton("アルバム", new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				startAlbum();
+			}
+		});
+
+		dialog.show();
+	}
+	// 写真を撮る、選択する操作を開始
+
+	public void startCamera() {
+		Intent intent = new Intent();
+		intent.setAction(MediaStore.ACTION_IMAGE_CAPTURE);
+		intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(getCacheFile(CACHE_PHOTO)));
+		mActivity.startActivityForResult(intent, REQUEST_CAMERA);
+	}
+	// カメラを起動
+
+	public void startAlbum() {
+		Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+		intent.setType("image/*");
+		intent.addCategory(Intent.CATEGORY_OPENABLE);
+		mActivity.startActivityForResult(intent, REQUEST_GALLERY);
+	}
+	// アルバムを起動
+
+	public void setCropSizeX(int cropSizeX) {
+		this.mCropSizeX = cropSizeX;
+	}
+	// 切り抜き幅を設定
+
+	public void setCropSizeY(int cropSizeY) {
+		this.mCropSizeY = cropSizeY;
+	}
+	// 切り抜き高さを設定
+
+	public void startCrop() {
+		Intent intent = new Intent("com.android.camera.action.CROP");
+		intent.setDataAndType(Uri.fromFile(getCacheFile(CACHE_PHOTO)), "image/*");
+		intent.putExtra("outputX", mCropSizeX);
+		intent.putExtra("outputY", mCropSizeY);
+		intent.putExtra("aspectX", mCropSizeX);
+		intent.putExtra("aspectY", mCropSizeY);
+		intent.putExtra("scale", true);
+		intent.putExtra("return-data", false);
+		intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(getCacheFile(CACHE_CROP)));
+
+		mActivity.startActivityForResult(intent, REQUEST_CROP);
+	}
+	// 切り抜きを開始
+
+
+	public void onPhotoActivityResult(int requestCode, int resultCode, Intent data) {
+		if (resultCode == Activity.RESULT_OK) {
+			switch (requestCode) {
+				case REQUEST_GALLERY:
+					try {
+						outputImage(MediaStore.Images.Media.getBitmap(mActivity.getContentResolver(), data.getData()), getCacheDir(), CACHE_PHOTO, false);
+					} catch (FileNotFoundException e) {
+						e.printStackTrace();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+					startCrop();
+					break;
+				case REQUEST_CAMERA:
+					startCrop();
+					break;
+				case REQUEST_CROP:
+					Bitmap bitmap = BitmapFactory.decodeFile(getCacheFile(CACHE_CROP).getPath());
+					Bitmap resizeBitmap = Bitmap.createScaledBitmap(bitmap, mCropSizeX, mCropSizeY, false);
+					try {
+						outputImage(resizeBitmap, getCacheDir(), CACHE_CROP, false);
+					} catch (FileNotFoundException e) {
+						e.printStackTrace();
+					}
+
+					mOnCropFinished.onCropFinished(getCacheFile(CACHE_CROP));
+					break;
+			}
+		}
+	}
+
+	public void setOnCropFinished(OnCropFinished onCropFinished) {
+		mOnCropFinished = onCropFinished;
+	}
+
+	public interface OnCropFinished {
+		public void onCropFinished(File file);
+	}
 }
