@@ -46,7 +46,7 @@ public class PhotoFileManager {
 			outputImageDir = new File(outputImageDir.getPath(), dirName);
 		}
 
-		if (outputImageDir.exists() == false) {
+		if (!outputImageDir.exists()) {
 			outputImageDir.mkdirs();
 		}
 
