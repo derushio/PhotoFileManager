@@ -190,7 +190,7 @@ public class PhotoFileManager {
 	}
 	// 切り抜きを開始
 
-	public void startCrop() {
+	private void startCrop() {
 		startCrop(getCacheFile(CACHE_PHOTO));
 	}
 	// 切り抜きを開始（キャッシュから始める場合のショートカット）

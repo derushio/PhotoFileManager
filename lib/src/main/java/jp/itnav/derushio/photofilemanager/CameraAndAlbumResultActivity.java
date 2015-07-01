@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 
+import java.io.File;
+
 /**
  * Created by derushio on 15/02/12.
  */
@@ -34,11 +36,10 @@ abstract public class CameraAndAlbumResultActivity extends Activity implements P
 	}
 	// アルバムを起動
 
-	protected void startCrop() {
-		mPhotoFileManager.startCrop();
+	protected void startCrop(File file) {
+		mPhotoFileManager.startCrop(file);
 	}
 	// 切り抜きを開始
-
 
 	public void setCropSizeX(int cropSizeX) {
 		mPhotoFileManager.setCropSizeX(cropSizeX);
