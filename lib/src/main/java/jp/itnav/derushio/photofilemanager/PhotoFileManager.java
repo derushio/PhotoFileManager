@@ -25,6 +25,7 @@ import java.io.IOException;
 public class PhotoFileManager {
 
 	private Activity mActivity;
+	// intentを制御するためにActivityを保持
 
 	public PhotoFileManager(Activity activity) {
 		mActivity = activity;
@@ -75,6 +76,7 @@ public class PhotoFileManager {
 
 		if (scan) {
 			MediaScannerConnection.scanFile(mActivity, new String[]{outputFile.getPath()}, new String[]{"image/jpg"}, null);
+			// メディアスキャンをかける
 		}
 
 		return outputFile;
@@ -90,6 +92,7 @@ public class PhotoFileManager {
 			builder.setText(message);
 			builder.setSubject(subject);
 			builder.startChooser();
+			// シェアのダイアログを表示
 			return true;
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
@@ -101,6 +104,7 @@ public class PhotoFileManager {
 	public static final String CACHE_PHOTO = "cache_image";
 	public static final String CACHE_CROP = "cache_crop";
 
+	private boolean isCrop = true;
 	private int mCropSizeX = 1000;
 	private int mCropSizeY = 1000;
 
@@ -108,9 +112,9 @@ public class PhotoFileManager {
 	private static final int REQUEST_GALLERY = 1;
 	private static final int REQUEST_CROP = 2;
 
-	private OnCropFinished mOnCropFinished = new OnCropFinished() {
+	private OnTakePicFinished mOnTakePicFinished = new OnTakePicFinished() {
 		@Override
-		public void onCropFinished(File file) {
+		public void onTakePicFinished(File file) {
 		}
 	};
 
@@ -157,6 +161,10 @@ public class PhotoFileManager {
 	}
 	// アルバムを起動
 
+	public void setCropExecute(boolean isCrop) {
+		this.isCrop = isCrop;
+	}
+
 	public void setCropSizeX(int cropSizeX) {
 		this.mCropSizeX = cropSizeX;
 	}
@@ -167,9 +175,9 @@ public class PhotoFileManager {
 	}
 	// 切り抜き高さを設定
 
-	public void startCrop() {
+	public void startCrop(File file) {
 		Intent intent = new Intent("com.android.camera.action.CROP");
-		intent.setDataAndType(Uri.fromFile(getCacheFile(CACHE_PHOTO)), "image/*");
+		intent.setDataAndType(Uri.fromFile(file), "image/*");
 		intent.putExtra("outputX", mCropSizeX);
 		intent.putExtra("outputY", mCropSizeY);
 		intent.putExtra("aspectX", mCropSizeX);
@@ -182,6 +190,10 @@ public class PhotoFileManager {
 	}
 	// 切り抜きを開始
 
+	public void startCrop() {
+		startCrop(getCacheFile(CACHE_PHOTO));
+	}
+	// 切り抜きを開始（キャッシュから始める場合のショートカット）
 
 	public void onPhotoActivityResult(int requestCode, int resultCode, Intent data) {
 		if (resultCode == Activity.RESULT_OK) {
@@ -194,10 +206,18 @@ public class PhotoFileManager {
 					} catch (IOException e) {
 						e.printStackTrace();
 					}
-					startCrop();
+					if (isCrop) {
+						startCrop();
+					} else {
+						mOnTakePicFinished.onTakePicFinished(getCacheFile(CACHE_PHOTO));
+					}
 					break;
 				case REQUEST_CAMERA:
-					startCrop();
+					if (isCrop) {
+						startCrop();
+					} else {
+						mOnTakePicFinished.onTakePicFinished(getCacheFile(CACHE_PHOTO));
+					}
 					break;
 				case REQUEST_CROP:
 					Bitmap bitmap = BitmapFactory.decodeFile(getCacheFile(CACHE_CROP).getPath());
@@ -208,17 +228,17 @@ public class PhotoFileManager {
 						e.printStackTrace();
 					}
 
-					mOnCropFinished.onCropFinished(getCacheFile(CACHE_CROP));
+					mOnTakePicFinished.onTakePicFinished(getCacheFile(CACHE_CROP));
 					break;
 			}
 		}
 	}
 
-	public void setOnCropFinished(OnCropFinished onCropFinished) {
-		mOnCropFinished = onCropFinished;
+	public void setOnTakePicFinished(OnTakePicFinished onTakePicFinished) {
+		mOnTakePicFinished = onTakePicFinished;
 	}
 
-	public interface OnCropFinished {
-		public void onCropFinished(File file);
+	public interface OnTakePicFinished {
+		public void onTakePicFinished(File file);
 	}
 }

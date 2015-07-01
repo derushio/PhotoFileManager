@@ -7,7 +7,7 @@ import android.os.Bundle;
 /**
  * Created by derushio on 15/02/12.
  */
-abstract public class CameraAndAlbumResultActivity extends Activity implements PhotoFileManager.OnCropFinished {
+abstract public class CameraAndAlbumResultActivity extends Activity implements PhotoFileManager.OnTakePicFinished {
 
 	protected PhotoFileManager mPhotoFileManager;
 
